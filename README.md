@@ -1,2 +1,5 @@
-# collate-entity-framework
-Filtering, sorting and paging extensions for Entity Framework
+# Collate.NET
+
+Filtering, sorting and paging extensions for .NET IQueryable collections. 
+
+Enables convenient server-side dynamic queries via Entity Framework.
