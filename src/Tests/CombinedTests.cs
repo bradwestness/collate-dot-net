@@ -18,8 +18,8 @@ namespace Tests
         {
             var request = new PageAndFilterAndSortRequest
             {
-                PageNumber = 2,
-                PageSize = 5,
+                PageNumber = 3,
+                PageSize = 25,
                 Logic = FilterLogic.And,
                 Filters = new IFilter[]
                 {
@@ -28,6 +28,12 @@ namespace Tests
                         Field = nameof(Student.LastName),
                         Operator = FilterOperator.Contains,
                         Value = "e"
+                    },
+                    new Filter
+                    {
+                        Field = nameof(Student.FirstName),
+                        Operator = FilterOperator.StartsWith,
+                        Value = "F"
                     }
                 },
                 Sorts = new ISort[]
@@ -36,6 +42,11 @@ namespace Tests
                     {
                         Field = nameof(Student.FirstName),
                         Direction = SortDirection.Descending
+                    },
+                    new Sort
+                    {
+                        Field = nameof(Student.LastName),
+                        Direction = SortDirection.Ascending
                     }
                 }
             };
