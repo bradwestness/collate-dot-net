@@ -14,10 +14,10 @@ namespace Collate.Internal
 
         public static Expression<Func<T, bool>> GetExpression<T>(IFilter filter, Expression<Func<T, bool>> additionalExpression = null)
         {
-            return GetExpression<T>(new IFilter[] { filter }, additionalExpression);
+            return GetExpression<T>(FilterLogic.And, new IFilter[] { filter }, additionalExpression);
         }
 
-        public static Expression<Func<T, bool>> GetExpression<T>(IEnumerable<IFilter> filters, Expression<Func<T, bool>> additionalExpression = null)
+        public static Expression<Func<T, bool>> GetExpression<T>(FilterLogic filterLogic, IEnumerable<IFilter> filters, Expression<Func<T, bool>> additionalExpression = null)
         {
             var filterList = filters.ToList();
             ParameterExpression param = Expression.Parameter(typeof(T), "item");
@@ -40,7 +40,19 @@ namespace Collate.Internal
                     }
                     else
                     {
-                        expression = Expression.AndAlso(expression, GetExpression<T>(item.Operator, param, item.Value, item.Field));
+                        switch (filterLogic)
+                        {
+                            case FilterLogic.And:
+                                expression = Expression.AndAlso(expression, GetExpression<T>(item.Operator, param, item.Value, item.Field));
+                                break;
+
+                            case FilterLogic.Or:
+                                expression = Expression.Or(expression, GetExpression<T>(item.Operator, param, item.Value, item.Field));
+                                break;
+
+                            default:
+                                throw new ArgumentException($"Invalid filter logic: {filterLogic}.", nameof(filterLogic));
+                        }
                     }
                 }
             }

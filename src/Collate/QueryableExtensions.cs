@@ -19,7 +19,7 @@ namespace Collate
         {
             if (request.Filters != null && request.Filters.Any())
             {
-                var expression = ExpressionBuilder.GetExpression<T>(request.Filters);
+                var expression = ExpressionBuilder.GetExpression<T>(request.Logic, request.Filters);
                 return source.Where(expression);
             }
 
@@ -37,7 +37,7 @@ namespace Collate
         {
             if (filters != null && filters.Any())
             {
-                var expression = ExpressionBuilder.GetExpression<T>(filters);
+                var expression = ExpressionBuilder.GetExpression<T>(FilterLogic.And, filters);
                 return source.Where(expression);
             }
 

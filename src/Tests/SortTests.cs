@@ -12,7 +12,7 @@ namespace Tests
     public class SortTests
     {
         [TestMethod]
-        public void SortTest()
+        public void SingleSortTest()
         {
             var request = new SortRequest
             {
@@ -21,11 +21,6 @@ namespace Tests
                     new Sort
                     {
                         Field = nameof(Track.Name),
-                        Direction = SortDirection.Ascending
-                    },
-                    new Sort
-                    {
-                        Field = nameof(Track.Milliseconds),
                         Direction = SortDirection.Ascending
                     }
                 }
