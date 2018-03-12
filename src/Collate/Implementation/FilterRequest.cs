@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Collate.Implementation
 {
@@ -7,5 +8,11 @@ namespace Collate.Implementation
         public FilterLogic Logic { get; set; }
 
         public IEnumerable<IFilter> Filters { get; set; }
+
+        public FilterRequest()
+        {
+            Logic = FilterLogic.And;
+            Filters = Array.Empty<IFilter>();
+        }
     }
 }

@@ -86,15 +86,19 @@ namespace Collate.Internal
                 case FilterOperator.GreaterThanOrEqual:
                     expression = Expression.GreaterThanOrEqual(member, constant);
                     break;
+
                 case FilterOperator.LessThanOrEqual:
                     expression = Expression.LessThanOrEqual(member, constant);
                     break;
+
                 case FilterOperator.LessThan:
                     expression = Expression.LessThan(member, constant);
                     break;
+
                 case FilterOperator.GreaterThan:
                     expression = Expression.GreaterThan(member, constant);
                     break;
+
                 case FilterOperator.Equal:
                     expression = Expression.Equal(member, constant);
                     break;
@@ -120,7 +124,7 @@ namespace Collate.Internal
                     break;
 
                 default:
-                    throw new NotImplementedException($"The \"{filterOperator}\" filter operator has not been implemented.");
+                    throw new ArgumentException($"Invalid filter operator: {filterOperator}.", nameof(filterOperator));
             }
 
             return expression;

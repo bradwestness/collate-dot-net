@@ -59,8 +59,6 @@ namespace Tests
                     .Sort(request)
                     .Page(request);
                 var list = paged.ToList();
-
-
             }
         }
     }

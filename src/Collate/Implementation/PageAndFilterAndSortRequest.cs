@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Collate.Implementation
 {
@@ -13,5 +14,13 @@ namespace Collate.Implementation
         public IEnumerable<IFilter> Filters { get; set; }
 
         public IEnumerable<ISort> Sorts { get; set; }
+
+        public PageAndFilterAndSortRequest()
+        {
+            PageNumber = 1;
+            Logic = FilterLogic.And;
+            Filters = Array.Empty<IFilter>();
+            Sorts = Array.Empty<ISort>();
+        }
     }
 }

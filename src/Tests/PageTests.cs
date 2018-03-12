@@ -15,18 +15,21 @@ namespace Tests
             var request = new PageRequest
             {
                 PageNumber = 2,
-                PageSize = 1
+                PageSize = 5
             };
 
             using (var dbContext = new TestDataContext())
             {
-                var items = dbContext.Courses;
-                var total = items.Count();
-                var paged = dbContext.Courses.OrderBy(x => x.Title).Page(request);
+                var items = dbContext.Students.OrderBy(x => x.Id).ToList();
+                var paged = dbContext.Students
+                    .OrderBy(x => x.Id) // needs to be ordered to apply paging
+                    .Page(request)
+                    .ToList();
 
-                Assert.AreEqual(request.PageSize, paged.Count());
-                Assert.AreNotEqual(request.PageSize, total);
-                Assert.AreEqual("Biology", paged.First().Title);
+                Assert.AreNotEqual(items.First().Id, paged.First().Id);
+                Assert.AreEqual(items.Skip((request.PageNumber - 1) * request.PageSize).First().Id, paged.First().Id);
+                Assert.AreNotEqual(request.PageSize, items.Count);
+                Assert.AreEqual(request.PageSize, paged.Count);
             }
         }
     }

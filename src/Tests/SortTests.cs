@@ -19,7 +19,7 @@ namespace Tests
                     new Sort
                     {
                         Field = nameof(Student.LastName),
-                        Direction = SortDirection.Descending
+                        Direction = SortDirection.Ascending
                     },
                     new Sort
                     {
@@ -34,9 +34,9 @@ namespace Tests
                 var items = dbContext.Students.ToList();
                 var sorted = dbContext.Students.Sort(request).ToList();
 
-                Assert.AreEqual(items.Count(), sorted.Count());
+                Assert.AreEqual(items.Count, sorted.Count);
                 Assert.AreNotEqual(items.First().LastName, sorted.First().LastName);
-                Assert.AreEqual("Frank", sorted.First().FirstName);
+                Assert.AreEqual("Leonard", sorted.First().FirstName);
             }
         }
     }

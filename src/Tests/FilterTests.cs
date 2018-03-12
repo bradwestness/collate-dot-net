@@ -31,9 +31,11 @@ namespace Tests
                 var items = dbContext.Courses.ToList();
                 var filtered = dbContext.Courses.Filter(request).ToList();
 
-                Assert.AreNotEqual(items.Count(), filtered.Count());
-                Assert.AreEqual(items.First().Title, filtered.First().Title);
-                Assert.AreNotEqual(items.Last().Title, filtered.Last().Title);
+                // assert that there were some items in the full set that didn't match the filter
+                Assert.IsTrue(items.Any(x => x.Title.EndsWith("y")));
+
+                // assert that every item in the set matches the filter
+                Assert.IsFalse(filtered.Any(x => !x.Title.EndsWith("y")));
             }
         }
     }
