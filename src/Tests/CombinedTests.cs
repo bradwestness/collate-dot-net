@@ -1,6 +1,8 @@
 ﻿using Collate;
 using Collate.Implementation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
 using System.Linq;
 using Tests.Data;
 
@@ -46,13 +48,16 @@ namespace Tests
             {
                 var items = dbContext.Tracks.ToList();
                 var filtered = dbContext.Tracks.Filter(request);
-                var paged = filtered
+                var queryable = filtered
                     .Sort(request)
                     .Page(request);
-                var list = paged.ToList();
+                var sql = ((DbQuery<Track>)queryable).Sql;
+                var list = queryable.ToList();
+
+                Debug.WriteLine(sql);
 
                 Assert.AreEqual(request.PageSize, list.Count);
-                foreach(var filter in request.Filters)
+                foreach (var filter in request.Filters)
                 {
                     switch (filter.Operator)
                     {

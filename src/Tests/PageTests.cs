@@ -1,6 +1,8 @@
 ﻿using Collate;
 using Collate.Implementation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
 using System.Linq;
 using Tests.Data;
 
@@ -21,10 +23,13 @@ namespace Tests
             using (var dbContext = new TestDataContext())
             {
                 var items = dbContext.Tracks.OrderBy(x => x.TrackId).ToList();
-                var paged = dbContext.Tracks
+                var queryable = dbContext.Tracks
                     .OrderBy(x => x.TrackId) // needs to be ordered to apply paging
-                    .Page(request)
-                    .ToList();
+                    .Page(request);
+                var sql = ((DbQuery<Track>)queryable).Sql;
+                var paged = queryable.ToList();
+
+                Debug.WriteLine(sql);
 
                 Assert.AreNotEqual(items.First().TrackId, paged.First().TrackId);
                 Assert.AreEqual(items.Skip((request.PageNumber - 1) * request.PageSize).First().TrackId, paged.First().TrackId);
