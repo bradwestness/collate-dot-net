@@ -19,7 +19,7 @@ namespace Tests
                 {
                     new Filter
                     {
-                        Field = nameof(Course.Title),
+                        Field = nameof(Track.Name),
                         Operator = FilterOperator.EndsWith,
                         Value = "y"
                     }
@@ -28,14 +28,14 @@ namespace Tests
 
             using (var dbContext = new TestDataContext())
             {
-                var items = dbContext.Courses.ToList();
-                var filtered = dbContext.Courses.Filter(request).ToList();
+                var items = dbContext.Tracks.ToList();
+                var filtered = dbContext.Tracks.Filter(request).ToList();
 
                 // assert that there were some items in the full set that didn't match the filter
-                Assert.IsTrue(items.Any(x => x.Title.EndsWith("y")));
+                Assert.IsTrue(items.Any(x => x.Name.EndsWith("y")));
 
                 // assert that every item in the set matches the filter
-                Assert.IsFalse(filtered.Any(x => !x.Title.EndsWith("y")));
+                Assert.IsFalse(filtered.Any(x => !x.Name.EndsWith("y")));
             }
         }
     }

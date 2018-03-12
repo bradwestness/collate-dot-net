@@ -18,12 +18,12 @@ namespace Tests
                 {
                     new Sort
                     {
-                        Field = nameof(Student.LastName),
+                        Field = nameof(Track.Name),
                         Direction = SortDirection.Ascending
                     },
                     new Sort
                     {
-                        Field = nameof(Student.FirstName),
+                        Field = nameof(Track.Milliseconds),
                         Direction = SortDirection.Ascending
                     }
                 }
@@ -31,12 +31,12 @@ namespace Tests
 
             using (var dbContext = new TestDataContext())
             {
-                var items = dbContext.Students.ToList();
-                var sorted = dbContext.Students.Sort(request).ToList();
+                var items = dbContext.Tracks.ToList();
+                var sorted = dbContext.Tracks.Sort(request).ToList();
 
                 Assert.AreEqual(items.Count, sorted.Count);
-                Assert.AreNotEqual(items.First().LastName, sorted.First().LastName);
-                Assert.AreEqual("Leonard", sorted.First().FirstName);
+                Assert.AreNotEqual(items.First().Name, sorted.First().Name);
+                Assert.AreEqual("'Round Midnight", sorted.First().Name);
             }
         }
     }

@@ -1,11 +1,7 @@
 ﻿using Collate;
 using Collate.Implementation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Tests.Data;
 
 namespace Tests
@@ -25,13 +21,13 @@ namespace Tests
                 {
                     new Filter
                     {
-                        Field = nameof(Student.LastName),
+                        Field = nameof(Track.Name),
                         Operator = FilterOperator.Contains,
                         Value = "e"
                     },
                     new Filter
                     {
-                        Field = nameof(Student.FirstName),
+                        Field = nameof(Track.Name),
                         Operator = FilterOperator.StartsWith,
                         Value = "F"
                     }
@@ -40,25 +36,36 @@ namespace Tests
                 {
                     new Sort
                     {
-                        Field = nameof(Student.FirstName),
+                        Field = nameof(Track.Milliseconds),
                         Direction = SortDirection.Descending
-                    },
-                    new Sort
-                    {
-                        Field = nameof(Student.LastName),
-                        Direction = SortDirection.Ascending
                     }
                 }
             };
 
             using (var dbContext = new TestDataContext())
             {
-                var items = dbContext.Students.ToList();
-                var filtered = dbContext.Students.Filter(request);
+                var items = dbContext.Tracks.ToList();
+                var filtered = dbContext.Tracks.Filter(request);
                 var paged = filtered
                     .Sort(request)
                     .Page(request);
                 var list = paged.ToList();
+
+                Assert.AreEqual(request.PageSize, list.Count);
+                foreach(var filter in request.Filters)
+                {
+                    switch (filter.Operator)
+                    {
+                        case FilterOperator.StartsWith:
+                            Assert.IsTrue(list.All(x => x.Name.StartsWith(filter.Value)));
+                            break;
+
+                        case FilterOperator.Contains:
+                            Assert.IsTrue(list.All(x => x.Name.Contains(filter.Value)));
+                            break;
+                    }
+                }
+                Assert.AreEqual(list.Max(x => x.Milliseconds), list.First().Milliseconds);
             }
         }
     }

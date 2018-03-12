@@ -14,20 +14,20 @@ namespace Tests
         {
             var request = new PageRequest
             {
-                PageNumber = 2,
-                PageSize = 5
+                PageNumber = 5,
+                PageSize = 25
             };
 
             using (var dbContext = new TestDataContext())
             {
-                var items = dbContext.Students.OrderBy(x => x.Id).ToList();
-                var paged = dbContext.Students
-                    .OrderBy(x => x.Id) // needs to be ordered to apply paging
+                var items = dbContext.Tracks.OrderBy(x => x.TrackId).ToList();
+                var paged = dbContext.Tracks
+                    .OrderBy(x => x.TrackId) // needs to be ordered to apply paging
                     .Page(request)
                     .ToList();
 
-                Assert.AreNotEqual(items.First().Id, paged.First().Id);
-                Assert.AreEqual(items.Skip((request.PageNumber - 1) * request.PageSize).First().Id, paged.First().Id);
+                Assert.AreNotEqual(items.First().TrackId, paged.First().TrackId);
+                Assert.AreEqual(items.Skip((request.PageNumber - 1) * request.PageSize).First().TrackId, paged.First().TrackId);
                 Assert.AreNotEqual(request.PageSize, items.Count);
                 Assert.AreEqual(request.PageSize, paged.Count);
             }
