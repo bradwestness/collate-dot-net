@@ -14,6 +14,7 @@ Enables convenient server-side dynamic queries via Entity Framework, especially 
     <PackageId>Collate.NET</PackageId>
     <RepositoryUrl>https://github.com/bradwestness/collate-dot-net/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
 </Project>
