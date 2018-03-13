@@ -1,26 +1,27 @@
-﻿using Collate.Internal;
-using System;
+﻿using Collate.Implementation;
+using Collate.Internal;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
 namespace Collate
 {
     public static class QueryableExtensions
     {
         /// <summary>
-        /// Filters an IQueryable by one or more fields.
+        /// Filters an IQueryable by a single field.
         /// </summary>
         /// <typeparam name="T">The collection type.</typeparam>
         /// <param name="source">The collection to be filtered.</param>
-        /// <param name="request">An IFilterRequest with one or more Filter objects by which to filter the collection.</param>
-        /// <returns>the IQueryable, filtered to include only items which match the specified filter(s).</returns>
-        public static IQueryable<T> Filter<T>(this IQueryable<T> source, IFilterRequest request)
+        /// <param name="filterOperator">The filter operator to use when filtering the collection.</param>
+        /// <param name="fieldName">The name of the field to filter by (must exist as a public field on the collection type).</param>
+        /// <param name="fieldValue">The value to filter by.</param>
+        /// <returns>the IQueryable, filtered to include only items which match the specified filter.</returns>
+        public static IQueryable<T> Filter<T>(this IQueryable<T> source, FilterOperator filterOperator, string fieldName, string fieldValue)
         {
-            if (request != null && request.Filters != null && request.Filters.Any())
+            if (fieldName != null)
             {
-                var expression = ExpressionBuilder.GetExpression<T>(request.Logic, request.Filters);
-                return source.Where(expression);
+                var filters = new IFilter[] { new Filter { Operator = filterOperator, Field = fieldName, Value = fieldValue } };
+                source.Filter(filters);
             }
 
             return source;
@@ -37,7 +38,7 @@ namespace Collate
         {
             if (filters != null && filters.Any())
             {
-                var expression = ExpressionBuilder.GetExpression<T>(FilterLogic.And, filters);
+                var expression = FilterExpressionBuilder.GetFilterExpression<T>(FilterLogic.And, filters);
                 return source.Where(expression);
             }
 
@@ -45,17 +46,37 @@ namespace Collate
         }
 
         /// <summary>
-        /// Sorts an IQueryable by one or more fields.
+        /// Filters an IQueryable by one or more fields.
+        /// </summary>
+        /// <typeparam name="T">The collection type.</typeparam>
+        /// <param name="source">The collection to be filtered.</param>
+        /// <param name="request">An IFilterRequest with one or more Filter objects by which to filter the collection.</param>
+        /// <returns>the IQueryable, filtered to include only items which match the specified filter(s).</returns>
+        public static IQueryable<T> Filter<T>(this IQueryable<T> source, IFilterRequest request)
+        {
+            if (request != null && request.Filters != null && request.Filters.Any())
+            {
+                var expression = FilterExpressionBuilder.GetFilterExpression<T>(request.Logic, request.Filters);
+                return source.Where(expression);
+            }
+
+            return source;
+        }
+
+        /// <summary>
+        /// Sorts an IQueryable by a single field.
         /// </summary>
         /// <typeparam name="T">The collection type.</typeparam>
         /// <param name="source">The collection to be sorted.</param>
-        /// <param name="request">An ISortRequest with one or more Sort objects specifying a field and direction by which to order the collection.</param>
-        /// <returns>the IQueryable, sorted as specified by the ISortRequest.</returns>
-        public static IOrderedQueryable<T> Sort<T>(this IQueryable<T> source, ISortRequest request)
+        /// <param name="sortField">The field by which to sort the collection.</param>
+        /// <param name="sortDirection">The direction in which to sort the collection.</param>
+        /// <returns>the IOrderedQueryable, sorted as specified by the sortField and sortDirection.</returns>
+        public static IOrderedQueryable<T> Sort<T>(this IQueryable<T> source, string sortField, SortDirection sortDirection)
         {
-            if (request != null && request.Sorts != null)
+            if (sortField != null)
             {
-                return source.Sort(request.Sorts);
+                var sorts = new ISort[] { new Sort { Field = sortField, Direction = sortDirection } };
+                return source.Sort(sorts);
             }
 
             return source as IOrderedQueryable<T>;
@@ -77,34 +98,31 @@ namespace Collate
                 return dest;
             }
 
-            var sortList = sorts.ToList();
-            var itemType = typeof(T);
-            var parameter = Expression.Parameter(itemType, "item");
+            var expression = SortExpressionBuilder.GetSortExpression(ref dest, sorts);
 
-            for (var i = 0; i < sortList.Count; i++)
+            if (expression != null)
             {
-                var property = typeof(T).GetProperty(sortList[i].Field);
-                var propertyAccess = Expression.MakeMemberAccess(parameter, property);
-                var sortExpression = Expression.Lambda(propertyAccess, parameter);
-                MethodCallExpression result = null;
-
-                if (i == 0)
-                {
-                    result = (sortList[i].Direction == SortDirection.Ascending)
-                        ? Expression.Call(typeof(Queryable), "OrderBy", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression))
-                        : Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
-                }
-                else
-                {
-                    result = (sortList[i].Direction == SortDirection.Ascending)
-                        ? Expression.Call(typeof(Queryable), "ThenBy", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression))
-                        : Expression.Call(typeof(Queryable), "ThenByDescending", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
-                }
-
-                dest = dest.Provider.CreateQuery<T>(result) as IOrderedQueryable<T>;
+                dest = dest.Provider.CreateQuery<T>(expression) as IOrderedQueryable<T>;
             }
 
             return dest;
+        }
+
+        /// <summary>
+        /// Sorts an IQueryable by one or more fields.
+        /// </summary>
+        /// <typeparam name="T">The collection type.</typeparam>
+        /// <param name="source">The collection to be sorted.</param>
+        /// <param name="request">An ISortRequest with one or more Sort objects specifying a field and direction by which to order the collection.</param>
+        /// <returns>the IQueryable, sorted as specified by the ISortRequest.</returns>
+        public static IOrderedQueryable<T> Sort<T>(this IQueryable<T> source, ISortRequest request)
+        {
+            if (request != null && request.Sorts != null)
+            {
+                return source.Sort(request.Sorts);
+            }
+
+            return source as IOrderedQueryable<T>;
         }
 
         /// <summary>
@@ -118,56 +136,16 @@ namespace Collate
         public static IOrderedQueryable<T> NavigationSort<T>(this IQueryable<T> source, ISort sort, string navigationPropertyName)
         {
             var dest = source as IOrderedQueryable<T>;
+            var sortExpression = SortExpressionBuilder.GetSortExpression(ref dest, sort, navigationPropertyName);
 
-            if (sort != null && navigationPropertyName != null)
+            if (sortExpression != null)
             {
-                var param = Expression.Parameter(typeof(T), "p");
-                Expression parent = param;
-                parent = Expression.Property(parent, navigationPropertyName);
-                parent = Expression.Property(parent, sort.Field);
-
-                var sortExpression = Expression.Lambda<Func<T, object>>(parent, param);
-
                 dest = (sort.Direction == SortDirection.Ascending)
                     ? source.OrderBy(sortExpression)
                     : source.OrderByDescending(sortExpression);
             }
 
             return dest;
-        }
-
-        /// <summary>
-        /// Returns a single page of results from an IOrderedQueryable.
-        /// </summary>
-        /// <typeparam name="T">The collection type.</typeparam>
-        /// <param name="source">The collection to be paged.</param>
-        /// <param name="request">An IPageRequest specifying a PageSize and a PageNumber to reduce the collection by.</param>
-        /// <returns>the IOrderedQueryable with Skip() and Take() applied.</returns>
-        public static IQueryable<T> Page<T>(this IOrderedQueryable<T> source, IPageRequest request)
-        {
-            if (request == null)
-            {
-                return source;
-            }
-
-            return source.Page(request.PageNumber, request.PageSize);
-        }
-
-        /// <summary>
-        /// Returns a single page of results from an IQueryable.
-        /// </summary>
-        /// <typeparam name="T">The collection type.</typeparam>
-        /// <param name="source">The collection to be paged.</param>
-        /// <param name="request">An IPageRequest specifying a PageSize and a PageNumber to by which to reduce the collection.</param>
-        /// <returns>the IQueryable with Skip() and Take() applied.</returns>
-        public static IQueryable<T> Page<T>(this IQueryable<T> source, IPageRequest request)
-        {
-            if (request == null)
-            {
-                return source;
-            }
-
-            return source.Page(request.PageNumber, request.PageSize);
         }
 
         /// <summary>
@@ -182,6 +160,40 @@ namespace Collate
             return source
                 .Skip(GetSkip(pageNumber, pageSize))
                 .Take(pageSize);
+        }
+
+        /// <summary>
+        /// Returns a single page of results from an IQueryable.
+        /// </summary>
+        /// <typeparam name="T">The collection type.</typeparam>
+        /// <param name="source">The collection to be paged.</param>
+        /// <param name="request">An IPageRequest specifying a PageSize and a PageNumber to by which to reduce the collection.</param>
+        /// <returns>the IQueryable with Skip() and Take() applied.</returns>
+        public static IQueryable<T> Page<T>(this IQueryable<T> source, IPageRequest request)
+        {
+            if (request != null)
+            {
+                return source.Page(request.PageNumber, request.PageSize);
+            }
+
+            return source;
+        }
+
+        /// <summary>
+        /// Returns a single page of results from an IOrderedQueryable.
+        /// </summary>
+        /// <typeparam name="T">The collection type.</typeparam>
+        /// <param name="source">The collection to be paged.</param>
+        /// <param name="request">An IPageRequest specifying a PageSize and a PageNumber to reduce the collection by.</param>
+        /// <returns>the IOrderedQueryable with Skip() and Take() applied.</returns>
+        public static IQueryable<T> Page<T>(this IOrderedQueryable<T> source, IPageRequest request)
+        {
+            if (request != null)
+            {
+                return source.Page(request.PageNumber, request.PageSize);
+            }
+
+            return source;
         }
 
         /// <summary>

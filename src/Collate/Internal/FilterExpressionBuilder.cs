@@ -6,27 +6,24 @@ using System.Reflection;
 
 namespace Collate.Internal
 {
-    internal static class ExpressionBuilder
+    internal static class FilterExpressionBuilder
     {
         private static readonly MethodInfo _containsMethod = typeof(string).GetMethod(FilterOperator.Contains.ToString(), new[] { typeof(string) });
         private static readonly MethodInfo _startsWithMethod = typeof(string).GetMethod(FilterOperator.StartsWith.ToString(), new[] { typeof(string) });
         private static readonly MethodInfo _endsWithMethod = typeof(string).GetMethod(FilterOperator.EndsWith.ToString(), new[] { typeof(string) });
 
-        public static Expression<Func<T, bool>> GetExpression<T>(IFilter filter, Expression<Func<T, bool>> additionalExpression = null)
+        public static Expression<Func<T, bool>> GetFilterExpression<T>(FilterLogic filterLogic, IEnumerable<IFilter> filters, Expression<Func<T, bool>> additionalExpression = null)
         {
-            return GetExpression<T>(FilterLogic.And, new IFilter[] { filter }, additionalExpression);
-        }
+            if (filters == null || !filters.Any())
+            {
+                return (additionalExpression != null)
+                    ? additionalExpression
+                    : x => true;
+            }
 
-        public static Expression<Func<T, bool>> GetExpression<T>(FilterLogic filterLogic, IEnumerable<IFilter> filters, Expression<Func<T, bool>> additionalExpression = null)
-        {
             var filterList = filters.ToList();
             ParameterExpression param = Expression.Parameter(typeof(T), "item");
             Expression expression = additionalExpression;
-
-            if (!filterList.Any() || filterList == null)
-            {
-                return additionalExpression != null ? additionalExpression : x => true;
-            }
 
             for (int i = 0; i < filterList.Count; i++)
             {
@@ -36,18 +33,18 @@ namespace Collate.Internal
                 {
                     if (expression == null)
                     {
-                        expression = GetExpression<T>(item.Operator, param, item.Value, item.Field);
+                        expression = GetFilterExpression<T>(item.Operator, param, item.Value, item.Field);
                     }
                     else
                     {
                         switch (filterLogic)
                         {
                             case FilterLogic.And:
-                                expression = Expression.AndAlso(expression, GetExpression<T>(item.Operator, param, item.Value, item.Field));
+                                expression = Expression.AndAlso(expression, GetFilterExpression<T>(item.Operator, param, item.Value, item.Field));
                                 break;
 
                             case FilterLogic.Or:
-                                expression = Expression.Or(expression, GetExpression<T>(item.Operator, param, item.Value, item.Field));
+                                expression = Expression.OrElse(expression, GetFilterExpression<T>(item.Operator, param, item.Value, item.Field));
                                 break;
 
                             default:
@@ -65,11 +62,11 @@ namespace Collate.Internal
             return Expression.Lambda<Func<T, bool>>(expression, param);
         }
 
-        private static Expression GetExpression<T>(FilterOperator filterOperator, ParameterExpression param, string filterValue, string fieldName)
+        private static Expression GetFilterExpression<T>(FilterOperator filterOperator, ParameterExpression param, string filterValue, string fieldName)
         {
             MemberExpression member = Expression.Property(param, fieldName);
             ConstantExpression constant;
-            
+
             if (member.Type == typeof(DateTime) || member.Type == typeof(DateTime?))
             {
                 constant = Expression.Constant(DateTime.Parse(filterValue), member.Type);
