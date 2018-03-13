@@ -17,7 +17,7 @@ namespace Collate
         /// <returns>the IQueryable, filtered to include only items which match the specified filter(s).</returns>
         public static IQueryable<T> Filter<T>(this IQueryable<T> source, IFilterRequest request)
         {
-            if (request.Filters != null && request.Filters.Any())
+            if (request != null && request.Filters != null && request.Filters.Any())
             {
                 var expression = ExpressionBuilder.GetExpression<T>(request.Logic, request.Filters);
                 return source.Where(expression);
@@ -77,42 +77,28 @@ namespace Collate
                 return dest;
             }
 
-            var sortingList = sorts.ToList();
+            var sortList = sorts.ToList();
             var itemType = typeof(T);
             var parameter = Expression.Parameter(itemType, "item");
 
-            for (var i = 0; i < sortingList.Count; i++)
+            for (var i = 0; i < sortList.Count; i++)
             {
-                var property = typeof(T).GetProperty(sortingList[i].Field);
+                var property = typeof(T).GetProperty(sortList[i].Field);
                 var propertyAccess = Expression.MakeMemberAccess(parameter, property);
                 var sortExpression = Expression.Lambda(propertyAccess, parameter);
                 MethodCallExpression result = null;
 
                 if (i == 0)
                 {
-                    switch (sortingList[i].Direction)
-                    {
-                        case SortDirection.Ascending:
-                            result = Expression.Call(typeof(Queryable), "OrderBy", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
-                            break;
-
-                        case SortDirection.Descending:
-                            result = Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
-                            break;
-                    }
+                    result = (sortList[i].Direction == SortDirection.Ascending)
+                        ? Expression.Call(typeof(Queryable), "OrderBy", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression))
+                        : Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
                 }
                 else
                 {
-                    switch (sortingList[i].Direction)
-                    {
-                        case SortDirection.Ascending:
-                            result = Expression.Call(typeof(Queryable), "ThenBy", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
-                            break;
-
-                        case SortDirection.Descending:
-                            result = Expression.Call(typeof(Queryable), "ThenByDescending", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
-                            break;
-                    }
+                    result = (sortList[i].Direction == SortDirection.Ascending)
+                        ? Expression.Call(typeof(Queryable), "ThenBy", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression))
+                        : Expression.Call(typeof(Queryable), "ThenByDescending", new Type[] { itemType, property.PropertyType }, dest.Expression, Expression.Quote(sortExpression));
                 }
 
                 dest = dest.Provider.CreateQuery<T>(result) as IOrderedQueryable<T>;
@@ -125,29 +111,29 @@ namespace Collate
         /// Sorts an IQueryable by a value on a navigation property of the main collection (e.g. sort Album by Album.Artist.Name).
         /// </summary>
         /// <typeparam name="T">The type of the base collection (e.g. Album).</typeparam>
-        /// <param name="query">The base collection to sort (e.g. IQueryable&lt;Album&gt;).</param>
+        /// <param name="source">The base collection to sort (e.g. IQueryable&lt;Album&gt;).</param>
         /// <param name="sort">The sort to be applied (e.g. Field = 'Name', Direction = 'Ascending').</param>
         /// <param name="navigationPropertyName">The navigation property to sort on (e.g. 'Artist').</param>
-        /// <returns>the IQueryable, sorted by the navigation property specified.</returns>
-        public static IQueryable<T> NavigationSort<T>(this IQueryable<T> query, ISort sort, string navigationPropertyName)
+        /// <returns>the IOrderedQueryable, sorted by the navigation property specified.</returns>
+        public static IOrderedQueryable<T> NavigationSort<T>(this IQueryable<T> source, ISort sort, string navigationPropertyName)
         {
-            var param = Expression.Parameter(typeof(T), "p");
-            Expression parent = param;
-            parent = Expression.Property(parent, navigationPropertyName);
-            parent = Expression.Property(parent, sort.Field);
+            var dest = source as IOrderedQueryable<T>;
 
-            var sortExpression = Expression.Lambda<Func<T, object>>(parent, param);
-
-            if (sort.Direction == SortDirection.Ascending)
+            if (sort != null && navigationPropertyName != null)
             {
-                query = query.OrderBy(sortExpression);
-            }
-            else
-            {
-                query = query.OrderByDescending(sortExpression);
+                var param = Expression.Parameter(typeof(T), "p");
+                Expression parent = param;
+                parent = Expression.Property(parent, navigationPropertyName);
+                parent = Expression.Property(parent, sort.Field);
+
+                var sortExpression = Expression.Lambda<Func<T, object>>(parent, param);
+
+                dest = (sort.Direction == SortDirection.Ascending)
+                    ? source.OrderBy(sortExpression)
+                    : source.OrderByDescending(sortExpression);
             }
 
-            return query;
+            return dest;
         }
 
         /// <summary>
