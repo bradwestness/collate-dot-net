@@ -69,7 +69,7 @@ namespace Collate.Internal
         {
             MemberExpression member = Expression.Property(param, fieldName);
             ConstantExpression constant;
-
+            
             if (member.Type == typeof(DateTime) || member.Type == typeof(DateTime?))
             {
                 constant = Expression.Constant(DateTime.Parse(filterValue), member.Type);
@@ -81,6 +81,10 @@ namespace Collate.Internal
             else if (member.Type == typeof(int) || member.Type == typeof(int?))
             {
                 constant = Expression.Constant(int.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(decimal) || member.Type == typeof(decimal?))
+            {
+                constant = Expression.Constant(decimal.Parse(filterValue), member.Type);
             }
             else if (member.Type == typeof(bool) || member.Type == typeof(bool?))
             {
