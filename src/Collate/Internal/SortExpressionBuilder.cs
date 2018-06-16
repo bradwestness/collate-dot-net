@@ -7,39 +7,40 @@ namespace Collate.Internal
 {
     internal static class SortExpressionBuilder
     {
-        public static MethodCallExpression GetSortExpression<T>(ref IOrderedQueryable<T> source, IEnumerable<ISort> sorts)
+        public static void ApplySorts<T>(ref IOrderedQueryable<T> source, IEnumerable<ISort> sorts)
         {
             if (sorts == null || !sorts.Any())
             {
-                return null;
+                return;
             }
 
             var sortList = sorts.ToList();
             var itemType = typeof(T);
             var parameter = Expression.Parameter(itemType, "item");
-            MethodCallExpression result = null;
+            var methodCalls = new List<MethodCallExpression>();
 
             for (var i = 0; i < sortList.Count; i++)
             {
                 var property = typeof(T).GetProperty(sortList[i].Field);
                 var propertyAccess = Expression.MakeMemberAccess(parameter, property);
                 var sortExpression = Expression.Lambda(propertyAccess, parameter);
+                MethodCallExpression methodCall = null;
 
                 if (i == 0)
                 {
-                    result = (sortList[i].Direction == SortDirection.Ascending)
+                    methodCall = (sortList[i].Direction == SortDirection.Ascending)
                         ? Expression.Call(typeof(Queryable), "OrderBy", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
                         : Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
                 }
                 else
                 {
-                    result = (sortList[i].Direction == SortDirection.Ascending)
+                    methodCall = (sortList[i].Direction == SortDirection.Ascending)
                         ? Expression.Call(typeof(Queryable), "ThenBy", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
                         : Expression.Call(typeof(Queryable), "ThenByDescending", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
                 }
-            }
 
-            return result;
+                source = source.Provider.CreateQuery<T>(methodCall) as IOrderedQueryable<T>;
+            }
         }
 
         public static Expression<Func<T, object>> GetSortExpression<T>(ref IOrderedQueryable<T> source, ISort sort, string navigationPropertyName)

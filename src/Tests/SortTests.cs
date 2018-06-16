@@ -64,5 +64,76 @@ namespace Tests
                 Assert.AreEqual("Alternative", sorted[0].Genre.Name);
             }
         }
+
+        [TestMethod]
+        public void MultiSortTest()
+        {
+            var request = new SortRequest
+            {
+                Sorts = new Sort[]
+                 {
+                     new Sort { Direction = SortDirection.Ascending, Field = nameof(Track.AlbumId)},
+                     new Sort { Direction = SortDirection.Descending, Field = nameof(Track.UnitPrice)}
+                 }
+            };
+
+            using (var dbContext = new TestDataContext())
+            {
+                var items = dbContext.Tracks.ToList();
+                var queryable = dbContext.Tracks.Sort(request);
+                var sql = ((DbQuery<Track>)queryable).Sql;
+                var sorted = queryable.ToList();
+
+                Debug.WriteLine(sql);
+
+                Assert.AreEqual(items.Count, sorted.Count);
+
+                var albumId = int.MinValue;
+                foreach (var album in sorted.GroupBy(x => x.AlbumId))
+                {
+                    Assert.IsFalse(albumId > album.Key);
+                    albumId = album.Key;
+
+                    var unitPrice = decimal.MaxValue;
+                    foreach (var track in album)
+                    {
+                        Assert.IsFalse(unitPrice < track.UnitPrice);
+                        unitPrice = track.UnitPrice;
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void MultiSortExtensionTest()
+        {
+            var request = $"{nameof(Track.AlbumId)},-{nameof(Track.UnitPrice)}".ToSortRequest();
+
+            using (var dbContext = new TestDataContext())
+            {
+                var items = dbContext.Tracks.ToList();
+                var queryable = dbContext.Tracks.Sort(request);
+                var sql = ((DbQuery<Track>)queryable).Sql;
+                var sorted = queryable.ToList();
+
+                Debug.WriteLine(sql);
+
+                Assert.AreEqual(items.Count, sorted.Count);
+
+                var albumId = int.MinValue;
+                foreach (var album in sorted.GroupBy(x => x.AlbumId))
+                {
+                    Assert.IsFalse(albumId > album.Key);
+                    albumId = album.Key;
+
+                    var unitPrice = decimal.MaxValue;
+                    foreach (var track in album)
+                    {
+                        Assert.IsFalse(unitPrice < track.UnitPrice);
+                        unitPrice = track.UnitPrice;
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,12 +1,89 @@
 ﻿using Collate.Implementation;
 using Collate.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Collate
 {
-    public static class QueryableExtensions
+    public static class Extensions
     {
+        private const char DELIMITER = ',';
+        private const char NEGATOR = '-';
+
+        /// <summary>
+        /// Converts a string of comma-separated field names into a collection of ISort objects.
+        /// Fields prefixed with a minus sign (e.g. "-FirstName") will be sorted in Descending order,
+        /// otherwise fields are sorted in Ascending order by default.
+        /// </summary>
+        /// <param name="sortString">A comma-separated list of field names.</param>
+        /// <returns>A collection of ISort objects.</returns>
+        public static IEnumerable<ISort> ToSorts(this string sortString)
+        {
+            if (string.IsNullOrEmpty(sortString))
+            {
+                return Array.Empty<ISort>();
+            }
+
+            var list = new List<ISort>();
+
+            foreach (var field in sortString.Split(new[] { DELIMITER }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (field.IndexOf(NEGATOR) == 0)
+                {
+                    list.Add(new Sort
+                    {
+                        Field = field.TrimStart(new[] { NEGATOR }),
+                        Direction = SortDirection.Descending
+                    });
+                }
+                else
+                {
+                    list.Add(new Sort
+                    {
+                        Field = field,
+                        Direction = SortDirection.Ascending
+                    });
+                }
+            }
+
+            return list;
+        }
+
+        public static ISortRequest ToSortRequest(this string sortString)
+        {
+            return new SortRequest
+            {
+                Sorts = sortString.ToSorts()
+            };
+        }
+
+        public static IEnumerable<IFilter> ToFilters<T>(this IEnumerable<T> values, string fieldName, FilterOperator filterOperator)
+        {
+            var list = new List<IFilter>();
+
+            foreach (T value in values)
+            {
+                list.Add(new Filter
+                {
+                    Field = fieldName,
+                    Operator = filterOperator,
+                    Value = value.ToString()
+                });
+            }
+
+            return list;
+        }
+
+        public static IFilterRequest ToFilterRequest<T>(this IEnumerable<T> values, string fieldName, FilterOperator filterOperator, FilterLogic filterLogic)
+        {
+            return new FilterRequest
+            {
+                Filters = values.ToFilters(fieldName, filterOperator),
+                Logic = filterLogic
+            };
+        }
+
         /// <summary>
         /// Filters an IQueryable by a single field.
         /// </summary>
@@ -63,6 +140,11 @@ namespace Collate
             return source;
         }
 
+        public static IQueryable<T1> Filter<T1, T2>(this IQueryable<T1> source, IEnumerable<T2> values, string fieldName, FilterOperator filterOperator, FilterLogic filterLogic)
+        {
+            return source.Filter(values.ToFilterRequest(fieldName, filterOperator, filterLogic));
+        }
+
         /// <summary>
         /// Sorts an IQueryable by a single field.
         /// </summary>
@@ -98,12 +180,7 @@ namespace Collate
                 return dest;
             }
 
-            var expression = SortExpressionBuilder.GetSortExpression(ref dest, sorts);
-
-            if (expression != null)
-            {
-                dest = dest.Provider.CreateQuery<T>(expression) as IOrderedQueryable<T>;
-            }
+            SortExpressionBuilder.ApplySorts(ref dest, sorts);
 
             return dest;
         }
@@ -123,6 +200,18 @@ namespace Collate
             }
 
             return source as IOrderedQueryable<T>;
+        }
+
+        /// <summary>
+        /// Sorts an IQueryable by one or more fields with a sort string.
+        /// </summary>
+        /// <typeparam name="T">The collection type.</typeparam>
+        /// <param name="source">The collection to be sorted.</param>
+        /// <param name="sortString">A comma-delimited string of fields to sort on. Prefixing a field with a minus sign ('-') will sort by descending order for that field.</param>
+        /// <returns>the IQueryable, sorted as specified by the sort string.</returns>
+        public static IOrderedQueryable<T> Sort<T>(this IQueryable<T> source, string sortString)
+        {
+            return source.Sort(sortString.ToSorts());
         }
 
         /// <summary>

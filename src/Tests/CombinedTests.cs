@@ -73,5 +73,48 @@ namespace Tests
                 Assert.AreEqual(list.Max(x => x.Milliseconds), list.First().Milliseconds);
             }
         }
+
+        [TestMethod]
+        public void CustomerTest()
+        {
+            var request = new PageAndFilterAndSortRequest
+            {
+                PageNumber = 3,
+                PageSize = 25,
+                Logic = FilterLogic.And,
+                Filters = new IFilter[]
+                {
+                    new Filter
+                    {
+                        Field = nameof(Customer.FirstName),
+                        Operator = FilterOperator.Contains,
+                        Value = "Jane"
+                    }
+                },
+                Sorts = new ISort[]
+                {
+                    new Sort
+                    {
+                        Field = nameof(Customer.LastName),
+                        Direction = SortDirection.Ascending
+                    }
+                }
+            };
+
+            using (var dbContext = new TestDataContext())
+            {
+                var items = dbContext.Customers.ToList();
+                var filtered = dbContext.Customers.Filter(request);
+                var queryable = filtered
+                    .Sort(request)
+                    .Page(request);
+                var sql = ((DbQuery<Customer>)queryable).Sql;
+                var list = queryable.ToList();
+
+                Debug.WriteLine(sql);
+
+                Assert.AreEqual(request.PageSize, list.Count);
+            }
+        }
     }
 }

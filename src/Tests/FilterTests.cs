@@ -433,5 +433,30 @@ namespace Tests
                 Assert.IsFalse(filtered.All(x => x.Name.StartsWith("C") && x.Name.EndsWith("y")));
             }
         }
+
+        [TestMethod]
+        public void MultiFilterExtensionTest()
+        {
+            var request = new[] { "A", "B", "C" }.ToFilterRequest(nameof(Track.Name), FilterOperator.StartsWith, FilterLogic.Or);
+            
+            using (var dbContext = new TestDataContext())
+            {
+                var items = dbContext.Tracks.ToList();
+                var queryable = dbContext.Tracks.Filter(request);
+                var sql = ((DbQuery<Track>)queryable).Sql;
+                var filtered = queryable.ToList();
+
+                Debug.WriteLine(sql);
+
+                // assert that there were some items in the full set that didn't match the filter
+                Assert.IsFalse(items.All(x => x.Name.StartsWith("A") || x.Name.StartsWith("B") || x.Name.StartsWith("C")));
+
+                // assert that every item in the set matches the filter
+                Assert.IsTrue(filtered.All(x => x.Name.StartsWith("A") || x.Name.StartsWith("B") ||  x.Name.StartsWith("C")));
+
+                // assert that every item in the list didn't fulfill both criteria
+                Assert.IsFalse(filtered.All(x => x.Name.StartsWith("A") && x.Name.StartsWith("B") && x.Name.StartsWith("C")));
+            }
+        }
     }
 }
