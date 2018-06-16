@@ -14,10 +14,10 @@ Enables convenient server-side dynamic queries via Entity Framework, especially 
     <PackageId>Collate.NET</PackageId>
     <RepositoryUrl>https://github.com/bradwestness/collate-dot-net/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
-    <PackageReleaseNotes>Additional convenience methods for doing single-field sorting and filtering.</PackageReleaseNotes>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <PackageReleaseNotes>New extension methods for convenient construction of multi-sorting and multi-filtering requests.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
