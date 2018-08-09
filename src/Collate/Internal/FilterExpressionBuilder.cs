@@ -67,9 +67,33 @@ namespace Collate.Internal
             MemberExpression member = Expression.Property(param, fieldName);
             ConstantExpression constant;
 
-            if (member.Type == typeof(DateTime) || member.Type == typeof(DateTime?))
+            if (member.Type == typeof(bool) || member.Type == typeof(bool?))
+            {
+                constant = Expression.Constant(bool.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(byte) || member.Type == typeof(byte?))
+            {
+                constant = Expression.Constant(byte.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(DateTime) || member.Type == typeof(DateTime?))
             {
                 constant = Expression.Constant(DateTime.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(DateTimeOffset) || member.Type == typeof(DateTimeOffset?))
+            {
+                constant = Expression.Constant(DateTimeOffset.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(decimal) || member.Type == typeof(decimal?))
+            {
+                constant = Expression.Constant(decimal.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(double) || member.Type == typeof(double?))
+            {
+                constant = Expression.Constant(double.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(float) || member.Type == typeof(float?))
+            {
+                constant = Expression.Constant(float.Parse(filterValue), member.Type);
             }
             else if (member.Type == typeof(Guid) || member.Type == typeof(Guid?))
             {
@@ -79,13 +103,17 @@ namespace Collate.Internal
             {
                 constant = Expression.Constant(int.Parse(filterValue), member.Type);
             }
-            else if (member.Type == typeof(decimal) || member.Type == typeof(decimal?))
+            else if (member.Type == typeof(long) || member.Type == typeof(long?))
             {
-                constant = Expression.Constant(decimal.Parse(filterValue), member.Type);
+                constant = Expression.Constant(long.Parse(filterValue), member.Type);
             }
-            else if (member.Type == typeof(bool) || member.Type == typeof(bool?))
+            else if (member.Type == typeof(sbyte) || member.Type == typeof(sbyte?))
             {
-                constant = Expression.Constant(bool.Parse(filterValue), member.Type);
+                constant = Expression.Constant(sbyte.Parse(filterValue), member.Type);
+            }
+            else if (member.Type == typeof(short) || member.Type == typeof(short?))
+            {
+                constant = Expression.Constant(short.Parse(filterValue), member.Type);
             }
             else
             {
