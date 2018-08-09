@@ -75,6 +75,10 @@ namespace Collate.Internal
             {
                 constant = Expression.Constant(byte.Parse(filterValue), member.Type);
             }
+            else if (member.Type == typeof(char) || member.Type == typeof(char?))
+            {
+                constant = Expression.Constant(char.Parse(filterValue), member.Type);
+            }
             else if (member.Type == typeof(DateTime) || member.Type == typeof(DateTime?))
             {
                 constant = Expression.Constant(DateTime.Parse(filterValue), member.Type);
