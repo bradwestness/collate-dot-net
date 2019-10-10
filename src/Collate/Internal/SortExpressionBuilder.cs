@@ -17,7 +17,6 @@ namespace Collate.Internal
             var sortList = sorts.ToList();
             var itemType = typeof(T);
             var parameter = Expression.Parameter(itemType, "item");
-            var methodCalls = new List<MethodCallExpression>();
 
             for (var i = 0; i < sortList.Count; i++)
             {
@@ -29,14 +28,14 @@ namespace Collate.Internal
                 if (i == 0)
                 {
                     methodCall = (sortList[i].Direction == SortDirection.Ascending)
-                        ? Expression.Call(typeof(Queryable), "OrderBy", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
-                        : Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
+                        ? Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
+                        : Expression.Call(typeof(Queryable), nameof(Queryable.OrderByDescending), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
                 }
                 else
                 {
                     methodCall = (sortList[i].Direction == SortDirection.Ascending)
-                        ? Expression.Call(typeof(Queryable), "ThenBy", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
-                        : Expression.Call(typeof(Queryable), "ThenByDescending", new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
+                        ? Expression.Call(typeof(Queryable), nameof(Queryable.ThenBy), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
+                        : Expression.Call(typeof(Queryable), nameof(Queryable.ThenByDescending), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
                 }
 
                 source = source.Provider.CreateQuery<T>(methodCall) as IOrderedQueryable<T>;

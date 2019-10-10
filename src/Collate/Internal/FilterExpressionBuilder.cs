@@ -8,9 +8,9 @@ namespace Collate.Internal
 {
     internal static class FilterExpressionBuilder
     {
-        private static readonly MethodInfo _containsMethod = typeof(string).GetMethod(FilterOperator.Contains.ToString(), new[] { typeof(string) });
-        private static readonly MethodInfo _startsWithMethod = typeof(string).GetMethod(FilterOperator.StartsWith.ToString(), new[] { typeof(string) });
-        private static readonly MethodInfo _endsWithMethod = typeof(string).GetMethod(FilterOperator.EndsWith.ToString(), new[] { typeof(string) });
+        private static readonly MethodInfo _containsMethod = typeof(string).GetMethod(nameof(FilterOperator.Contains), new[] { typeof(string) });
+        private static readonly MethodInfo _startsWithMethod = typeof(string).GetMethod(nameof(FilterOperator.StartsWith), new[] { typeof(string) });
+        private static readonly MethodInfo _endsWithMethod = typeof(string).GetMethod(nameof(FilterOperator.EndsWith), new[] { typeof(string) });
 
         public static Expression<Func<T, bool>> GetFilterExpression<T>(FilterLogic filterLogic, IEnumerable<IFilter> filters, Expression<Func<T, bool>> additionalExpression = null)
         {

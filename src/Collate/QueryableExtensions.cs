@@ -175,6 +175,14 @@ namespace Collate
         {
             var dest = source as IOrderedQueryable<T>;
 
+            if (dest == null)
+            {
+                // if we couldn't cast to IOrderedQueryable,
+                // apply a dummy sort against a constant value
+                // to get an IOrderedQueryable
+                dest = source.OrderBy(x => 0);
+            }
+
             if (sorts == null || !sorts.Any())
             {
                 return dest;

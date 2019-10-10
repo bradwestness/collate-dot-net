@@ -1,12 +1,11 @@
 ﻿using Collate;
 using Collate.Implementation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Data.Entity.Infrastructure;
 using System.Diagnostics;
 using System.Linq;
-using Tests.Data;
+using Tests.Core.Data;
 
-namespace Tests
+namespace Tests.Core
 {
     [TestClass]
     public class CombinedTests
@@ -51,7 +50,7 @@ namespace Tests
                 var queryable = filtered
                     .Sort(request)
                     .Page(request);
-                var sql = ((DbQuery<Track>)queryable).Sql;
+                var sql = "";// ((DbQuery<Track>)queryable).Sql;
                 var list = queryable.ToList();
 
                 Debug.WriteLine(sql);
@@ -110,13 +109,13 @@ namespace Tests
                 var queryable = filtered
                     .Sort(request)
                     .Page(request);
-                var sql = ((DbQuery<Customer>)queryable).Sql;
+                var sql = "";//((DbQuery<Customer>)queryable).Sql;
                 var list = queryable.ToList();
 
                 Debug.WriteLine(sql);
 
                 Assert.AreEqual(request.PageSize, list.Count);
-                Assert.IsTrue(list.All(x => x.FirstName.ToUpper().Contains(filter.Value.ToUpper())));
+                Assert.IsTrue(list.All(x => x.FirstName.Contains(filter.Value)));
             }
         }
     }
