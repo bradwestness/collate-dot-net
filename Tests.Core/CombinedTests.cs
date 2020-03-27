@@ -118,5 +118,56 @@ namespace Tests.Core
                 Assert.IsTrue(list.All(x => x.FirstName.Contains(filter.Value)));
             }
         }
+
+        [TestMethod]
+        public void InheritanceTest()
+        {
+            var filter = new Filter
+            {
+                Field = nameof(Track.Composer),
+                Operator = FilterOperator.Contains,
+                Value = "e"
+            };
+
+            var request = new PageAndFilterAndSortRequest
+            {
+                PageNumber = 3,
+                PageSize = 5,
+                Logic = FilterLogic.And,
+                Filters = new IFilter[]
+                {
+                    filter
+                },
+                Sorts = new ISort[]
+                {
+                    new Sort
+                    {
+                        Field = nameof(Track.TrackId),
+                        Direction = SortDirection.Ascending
+                    },
+                    new Sort
+                    {
+                        Field = nameof(Track.Composer),
+                        Direction = SortDirection.Ascending
+                    }
+                }
+            };
+
+            using (var dbContext = new TestDataContext())
+            {
+                //var items = dbContext.Tracks.ToList();
+                var filtered = dbContext.Tracks.Filter(request);
+                var queryable = filtered
+                    .Sort(request)
+                    .Page(request);
+                var sql = "";//((DbQuery<Customer>)queryable).Sql;
+                var list = queryable.ToList();
+
+                Debug.WriteLine(sql);
+
+                Assert.AreEqual(request.PageSize, list.Count);
+                Assert.IsTrue(list.All(x => x.Composer.Contains(filter.Value)));
+            }
+        }
     }
 }

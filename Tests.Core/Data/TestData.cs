@@ -278,16 +278,19 @@ namespace Tests.Core.Data
     }
 
     [Table("Track")]
-    public class Track
+    public class Track : TrackParent
+    {
+        [StringLength(220)]
+        public string Composer { get; set; }
+    }
+
+    public class TrackParent
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TrackId { get; set; }
 
         [Required, StringLength(200)]
         public string Name { get; set; }
-
-        [StringLength(220)]
-        public string Composer { get; set; }
 
         public int Milliseconds { get; set; }
 
