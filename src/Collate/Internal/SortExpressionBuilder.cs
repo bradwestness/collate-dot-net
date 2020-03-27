@@ -9,36 +9,43 @@ namespace Collate.Internal
     {
         public static void ApplySorts<T>(ref IOrderedQueryable<T> source, IEnumerable<ISort> sorts)
         {
-            if (sorts == null || !sorts.Any())
+            if (!(sorts is object) || !sorts.Any())
             {
                 return;
             }
 
+            var isOrdered = source.Expression.Type.Equals(typeof(IOrderedQueryable<T>));
             var sortList = sorts.ToList();
             var itemType = typeof(T);
             var parameter = Expression.Parameter(itemType, "item");
 
-            for (var i = 0; i < sortList.Count; i++)
+            foreach (var sort in sortList)
             {
-                var property = typeof(T).GetProperty(sortList[i].Field);
+                var property = typeof(T).GetProperty(sort.Field);
                 var propertyAccess = Expression.MakeMemberAccess(parameter, property);
                 var sortExpression = Expression.Lambda(propertyAccess, parameter);
                 MethodCallExpression methodCall = null;
 
-                if (i == 0)
+                switch (sort.Direction)
                 {
-                    methodCall = (sortList[i].Direction == SortDirection.Ascending)
-                        ? Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
-                        : Expression.Call(typeof(Queryable), nameof(Queryable.OrderByDescending), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
-                }
-                else
-                {
-                    methodCall = (sortList[i].Direction == SortDirection.Ascending)
-                        ? Expression.Call(typeof(Queryable), nameof(Queryable.ThenBy), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
-                        : Expression.Call(typeof(Queryable), nameof(Queryable.ThenByDescending), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
+                    case SortDirection.Ascending:
+                        methodCall = !isOrdered
+                            ? Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
+                            : Expression.Call(typeof(Queryable), nameof(Queryable.ThenBy), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
+                        break;
+
+                    case SortDirection.Descending:
+                        methodCall = !isOrdered
+                            ? Expression.Call(typeof(Queryable), nameof(Queryable.OrderByDescending), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression))
+                            : Expression.Call(typeof(Queryable), nameof(Queryable.ThenByDescending), new Type[] { itemType, property.PropertyType }, source.Expression, Expression.Quote(sortExpression));
+                        break;
+
+                    default:
+                        throw new NotImplementedException($"Unsupported sort direction: {sort.Direction}");
                 }
 
                 source = source.Provider.CreateQuery<T>(methodCall) as IOrderedQueryable<T>;
+                isOrdered = true;
             }
         }
 
@@ -46,7 +53,7 @@ namespace Collate.Internal
         {
             Expression<Func<T, object>> sortExpression = null;
 
-            if (sort != null && navigationPropertyName != null)
+            if (sort is object && navigationPropertyName is object)
             {
                 var param = Expression.Parameter(typeof(T), "p");
                 Expression parent = param;

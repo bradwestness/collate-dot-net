@@ -95,7 +95,7 @@ namespace Collate
         /// <returns>the IQueryable, filtered to include only items which match the specified filter.</returns>
         public static IQueryable<T> Filter<T>(this IQueryable<T> source, FilterOperator filterOperator, string fieldName, string fieldValue)
         {
-            if (fieldName != null)
+            if (!string.IsNullOrEmpty(fieldName))
             {
                 var filters = new IFilter[] { new Filter { Operator = filterOperator, Field = fieldName, Value = fieldValue } };
                 source.Filter(filters);
@@ -113,7 +113,7 @@ namespace Collate
         /// <returns>the IQueryable, filtered to include only items which match the specified fitler(s).</returns>
         public static IQueryable<T> Filter<T>(this IQueryable<T> source, IEnumerable<IFilter> filters)
         {
-            if (filters != null && filters.Any())
+            if (filters is object && filters.Any())
             {
                 var expression = FilterExpressionBuilder.GetFilterExpression<T>(FilterLogic.And, filters);
                 return source.Where(expression);
@@ -131,7 +131,7 @@ namespace Collate
         /// <returns>the IQueryable, filtered to include only items which match the specified filter(s).</returns>
         public static IQueryable<T> Filter<T>(this IQueryable<T> source, IFilterRequest request)
         {
-            if (request != null && request.Filters != null && request.Filters.Any())
+            if (request is object && request.Filters is object && request.Filters.Any())
             {
                 var expression = FilterExpressionBuilder.GetFilterExpression<T>(request.Logic, request.Filters);
                 return source.Where(expression);
@@ -155,7 +155,7 @@ namespace Collate
         /// <returns>the IOrderedQueryable, sorted as specified by the sortField and sortDirection.</returns>
         public static IOrderedQueryable<T> Sort<T>(this IQueryable<T> source, string sortField, SortDirection sortDirection)
         {
-            if (sortField != null)
+            if (sortField is object)
             {
                 var sorts = new ISort[] { new Sort { Field = sortField, Direction = sortDirection } };
                 return source.Sort(sorts);
@@ -175,7 +175,7 @@ namespace Collate
         {
             var dest = source as IOrderedQueryable<T>;
 
-            if (dest == null)
+            if (!(dest is object))
             {
                 // if we couldn't cast to IOrderedQueryable,
                 // apply a dummy sort against a constant value
@@ -183,7 +183,7 @@ namespace Collate
                 dest = source.OrderBy(x => 0);
             }
 
-            if (sorts == null || !sorts.Any())
+            if (!(sorts is object) || !sorts.Any())
             {
                 return dest;
             }
@@ -202,7 +202,7 @@ namespace Collate
         /// <returns>the IQueryable, sorted as specified by the ISortRequest.</returns>
         public static IOrderedQueryable<T> Sort<T>(this IQueryable<T> source, ISortRequest request)
         {
-            if (request != null && request.Sorts != null)
+            if (request is object && request.Sorts is object)
             {
                 return source.Sort(request.Sorts);
             }
@@ -235,7 +235,7 @@ namespace Collate
             var dest = source as IOrderedQueryable<T>;
             var sortExpression = SortExpressionBuilder.GetSortExpression(ref dest, sort, navigationPropertyName);
 
-            if (sortExpression != null)
+            if (sortExpression is object)
             {
                 dest = (sort.Direction == SortDirection.Ascending)
                     ? source.OrderBy(sortExpression)
@@ -268,7 +268,7 @@ namespace Collate
         /// <returns>the IQueryable with Skip() and Take() applied.</returns>
         public static IQueryable<T> Page<T>(this IQueryable<T> source, IPageRequest request)
         {
-            if (request != null)
+            if (request is object)
             {
                 return source.Page(request.PageNumber, request.PageSize);
             }
@@ -285,7 +285,7 @@ namespace Collate
         /// <returns>the IOrderedQueryable with Skip() and Take() applied.</returns>
         public static IQueryable<T> Page<T>(this IOrderedQueryable<T> source, IPageRequest request)
         {
-            if (request != null)
+            if (request is object)
             {
                 return source.Page(request.PageNumber, request.PageSize);
             }

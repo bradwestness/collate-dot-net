@@ -14,52 +14,47 @@ namespace Collate.Internal
 
         public static Expression<Func<T, bool>> GetFilterExpression<T>(FilterLogic filterLogic, IEnumerable<IFilter> filters, Expression<Func<T, bool>> additionalExpression = null)
         {
-            if (filters == null || !filters.Any())
+            if (!(filters is object) || !filters.Any())
             {
-                return (additionalExpression != null)
-                    ? additionalExpression
-                    : x => true;
+                return additionalExpression ?? DefaultExpression<T>();
             }
 
             var filterList = filters.ToList();
             ParameterExpression param = Expression.Parameter(typeof(T), "item");
             Expression expression = additionalExpression;
 
-            for (int i = 0; i < filterList.Count; i++)
+            foreach (var filter in filterList)
             {
-                var item = filterList[i];
-                var property = typeof(T).GetProperty(item.Field, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-                if (property != null && !string.IsNullOrEmpty(item.Value))
+                var property = typeof(T).GetProperty(filter.Field, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+                if (property is object && !string.IsNullOrEmpty(filter.Value))
                 {
-                    if (expression == null)
-                    {
-                        expression = GetFilterExpression<T>(item.Operator, param, item.Value, item.Field);
-                    }
-                    else
-                    {
-                        switch (filterLogic)
-                        {
-                            case FilterLogic.And:
-                                expression = Expression.AndAlso(expression, GetFilterExpression<T>(item.Operator, param, item.Value, item.Field));
-                                break;
-
-                            case FilterLogic.Or:
-                                expression = Expression.OrElse(expression, GetFilterExpression<T>(item.Operator, param, item.Value, item.Field));
-                                break;
-
-                            default:
-                                throw new ArgumentException($"Invalid filter logic: {filterLogic}.", nameof(filterLogic));
-                        }
-                    }
+                    expression = !(expression is object)
+                        ? GetFilterExpression<T>(filter.Operator, param, filter.Value, filter.Field)
+                        : CombineExpressions(filterLogic, expression, GetFilterExpression<T>(filter.Operator, param, filter.Value, filter.Field));
                 }
             }
 
-            if (expression == null)
+            if (!(expression is object))
             {
-                return x => true;
+                return DefaultExpression<T>();
             }
 
             return Expression.Lambda<Func<T, bool>>(expression, param);
+        }
+
+        private static Expression CombineExpressions(FilterLogic filterLogic, Expression expression1, Expression expression2)
+        {
+            switch (filterLogic)
+            {
+                case FilterLogic.And:
+                    return Expression.AndAlso(expression1, expression2);
+
+                case FilterLogic.Or:
+                    return Expression.OrElse(expression1, expression2);
+
+                default:
+                    throw new ArgumentException($"Invalid filter logic: {filterLogic}.", nameof(filterLogic));
+            }
         }
 
         private static Expression GetFilterExpression<T>(FilterOperator filterOperator, ParameterExpression param, string filterValue, string fieldName)
@@ -174,5 +169,8 @@ namespace Collate.Internal
 
             return expression;
         }
+
+        private static Expression<Func<T, bool>> DefaultExpression<T>() => 
+            _ => true;
     }
 }
