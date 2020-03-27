@@ -4,6 +4,16 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <PackageId>Collate.Tests.Core</PackageId>
+
+    <Authors>Brad Westness</Authors>
+
+    <Company />
+
+    <Product>Collate</Product>
+
+    <AssemblyName>Collate.Tests.Core</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

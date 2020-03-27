@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 
-namespace Tests.Data
+namespace Collate.Tests.Data
 {
     /// <summary>
     /// DbContext for the "chinook" SQLite sample database

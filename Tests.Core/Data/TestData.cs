@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Tests.Core.Data
+namespace Collate.Tests.Core.Data
 {
     /// <summary>
     /// DbContext for the "chinook" SQLite sample database

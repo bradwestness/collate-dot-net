@@ -1,11 +1,10 @@
-﻿using Collate;
-using Collate.Implementation;
+﻿using Collate.Implementation;
+using Collate.Tests.Core.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 using System.Linq;
-using Tests.Core.Data;
 
-namespace Tests.Core
+namespace Collate.Tests.Core
 {
     [TestClass]
     public class CombinedTests

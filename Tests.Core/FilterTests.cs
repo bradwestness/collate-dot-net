@@ -1,11 +1,12 @@
-﻿using Collate;
-using Collate.Implementation;
+﻿using Collate.Implementation;
+using Collate.Tests.Core.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Diagnostics;
 using System.Linq;
-using Tests.Core.Data;
+using System.Linq.Expressions;
 
-namespace Tests.Core
+namespace Collate.Tests.Core
 {
     [TestClass]
     public class FilterTests
@@ -456,6 +457,40 @@ namespace Tests.Core
                 // assert that every item in the list didn't fulfill both criteria
                 Assert.IsFalse(filtered.All(x => x.Name.StartsWith("A") && x.Name.StartsWith("B") && x.Name.StartsWith("C")));
             }
+        }
+
+        [TestMethod]
+        public void FilterExpressionsTest()
+        {
+            // Create Sample Filter
+            var filter = new Filter
+            {
+                Field = nameof(TestData.Number),
+                Operator = FilterOperator.GreaterThan,
+                Value = "2"
+            };
+
+            // Create Expression
+            Expression<Func<TestData, bool>> expression = e => e.Number < 4;
+
+            // Build Filter Expression
+            var filterExp = Internal.FilterExpressionBuilder.GetFilterExpression(FilterLogic.And, new[] { filter }, expression);
+
+            // Compile Filter Expression to Function
+            var filterFunc = filterExp.Compile();
+
+            // Test!
+            Assert.IsFalse(filterFunc(new TestData() { Number = 2 }));
+            Assert.IsTrue(filterFunc(new TestData() { Number = 3 }));
+            Assert.IsFalse(filterFunc(new TestData() { Number = 4 }));
+        }
+
+        private class TestData
+        {
+            /// <summary>
+            /// Some Number
+            /// </summary>
+            public int Number { get; set; }
         }
     }
 }

@@ -1,12 +1,11 @@
-﻿using Collate;
-using Collate.Implementation;
+﻿using Collate.Implementation;
+using Collate.Tests.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Data.Entity.Infrastructure;
 using System.Diagnostics;
 using System.Linq;
-using Tests.Data;
 
-namespace Tests
+namespace Collate.Tests
 {
     [TestClass]
     public class FilterTests
@@ -438,7 +437,7 @@ namespace Tests
         public void MultiFilterExtensionTest()
         {
             var request = new[] { "A", "B", "C" }.ToFilterRequest(nameof(Track.Name), FilterOperator.StartsWith, FilterLogic.Or);
-            
+
             using (var dbContext = new TestDataContext())
             {
                 var items = dbContext.Tracks.ToList();
@@ -452,7 +451,7 @@ namespace Tests
                 Assert.IsFalse(items.All(x => x.Name.StartsWith("A") || x.Name.StartsWith("B") || x.Name.StartsWith("C")));
 
                 // assert that every item in the set matches the filter
-                Assert.IsTrue(filtered.All(x => x.Name.StartsWith("A") || x.Name.StartsWith("B") ||  x.Name.StartsWith("C")));
+                Assert.IsTrue(filtered.All(x => x.Name.StartsWith("A") || x.Name.StartsWith("B") || x.Name.StartsWith("C")));
 
                 // assert that every item in the list didn't fulfill both criteria
                 Assert.IsFalse(filtered.All(x => x.Name.StartsWith("A") && x.Name.StartsWith("B") && x.Name.StartsWith("C")));
