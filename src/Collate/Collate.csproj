@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/bradwestness/collate-dot-net/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/bradwestness/collate-dot-net/</PackageProjectUrl>
-    <Copyright>2019 Brad Westness</Copyright>
+    <Copyright>2020 Brad Westness</Copyright>
     <PackageTags>iqueryable filter sort page entity framework extension</PackageTags>
     <Description>Filtering, sorting and paging extensions for .NET IQueryable collections.
 
@@ -14,10 +14,11 @@ Enables convenient server-side dynamic queries via Entity Framework, especially 
     <PackageId>Collate.NET</PackageId>
     <RepositoryUrl>https://github.com/bradwestness/collate-dot-net/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.4</Version>
-    <AssemblyVersion>1.4.0.0</AssemblyVersion>
-    <FileVersion>1.4.0.0</FileVersion>
-    <PackageReleaseNotes>Adds .NET Core 3 and Entity Framework Core 3 support</PackageReleaseNotes>
+    <Version>1.5</Version>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <FileVersion>1.5.0.0</FileVersion>
+    <PackageReleaseNotes>Adds .NET Core 3.1 and Entity Framework Core 3.1 support</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +26,10 @@ Enables convenient server-side dynamic queries via Entity Framework, especially 
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>
