@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/bradwestness/collate-dot-net/</PackageProjectUrl>
-    <Copyright>2020 Brad Westness</Copyright>
+    <Copyright>2023 Brad Westness</Copyright>
     <PackageTags>iqueryable filter sort page entity framework extension</PackageTags>
     <Description>
       Filtering, sorting and paging extensions for .NET IQueryable collections.
@@ -16,15 +16,15 @@
     <PackageId>Collate.NET</PackageId>
     <RepositoryUrl>https://github.com/bradwestness/collate-dot-net/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.6</Version>
-    <AssemblyVersion>1.6.0.0</AssemblyVersion>
-    <FileVersion>1.6.0.0</FileVersion>
-    <PackageReleaseNotes>Adds .NET Core 3.1 and Entity Framework Core 3.1 support</PackageReleaseNotes>
+    <Version>1.7</Version>
+    <AssemblyVersion>1.7.0.0</AssemblyVersion>
+    <FileVersion>1.7.0.0</FileVersion>
+    <PackageReleaseNotes>Adds support multi-level navigation sorts.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>

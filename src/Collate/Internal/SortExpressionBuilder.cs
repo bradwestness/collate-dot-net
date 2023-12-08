@@ -49,17 +49,21 @@ namespace Collate.Internal
             }
         }
 
-        public static Expression<Func<T, object>> GetSortExpression<T>(ref IOrderedQueryable<T> source, ISort sort, string navigationPropertyName)
+        public static Expression<Func<T, object>> GetSortExpression<T>(ref IOrderedQueryable<T> source, ISort sort, params string[] navigationPropertyNames)
         {
             Expression<Func<T, object>> sortExpression = null;
 
-            if (sort is object && navigationPropertyName is object)
+            if (sort is object && navigationPropertyNames is object)
             {
                 var param = Expression.Parameter(typeof(T), "p");
                 Expression parent = param;
-                parent = Expression.Property(parent, navigationPropertyName);
-                parent = Expression.Property(parent, sort.Field);
 
+                foreach (var navigationPropertyName in navigationPropertyNames)
+                {
+                    parent = Expression.Property(parent, navigationPropertyName);
+                }
+
+                parent = Expression.Property(parent, sort.Field);
                 sortExpression = Expression.Lambda<Func<T, object>>(parent, param);
             }
 

@@ -228,12 +228,12 @@ namespace Collate
         /// <typeparam name="T">The type of the base collection (e.g. Album).</typeparam>
         /// <param name="source">The base collection to sort (e.g. IQueryable&lt;Album&gt;).</param>
         /// <param name="sort">The sort to be applied (e.g. Field = 'Name', Direction = 'Ascending').</param>
-        /// <param name="navigationPropertyName">The navigation property to sort on (e.g. 'Artist').</param>
-        /// <returns>the IOrderedQueryable, sorted by the navigation property specified.</returns>
-        public static IOrderedQueryable<T> NavigationSort<T>(this IQueryable<T> source, ISort sort, string navigationPropertyName)
+        /// <param name="navigationPropertyNames">One or more navigation properties to sort on (e.g. 'Artist', 'Genre').</param>
+        /// <returns>the IOrderedQueryable, sorted by the navigation properties specified.</returns>
+        public static IOrderedQueryable<T> NavigationSort<T>(this IQueryable<T> source, ISort sort, params string[] navigationPropertyNames)
         {
             var dest = source as IOrderedQueryable<T>;
-            var sortExpression = SortExpressionBuilder.GetSortExpression(ref dest, sort, navigationPropertyName);
+            var sortExpression = SortExpressionBuilder.GetSortExpression(ref dest, sort, navigationPropertyNames);
 
             if (sortExpression is object)
             {

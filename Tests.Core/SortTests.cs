@@ -68,6 +68,34 @@ namespace Collate.Tests.Core
         }
 
         [TestMethod]
+        public void NestedNavigationSortTest()
+        {
+            var navigationSort = new Sort
+            {
+                Field = nameof(Genre.Name),
+                Direction = SortDirection.Ascending
+            };
+
+            using (var dbContext = new TestDataContext())
+            {
+                var items = dbContext
+                    .InvoiceLines
+                    .Include(x => x.Track)
+                    .ThenInclude(x => x.Genre)
+                    .ToList();
+                var queryable = dbContext.InvoiceLines.NavigationSort(navigationSort, "Track", "Genre");
+                var sql = ""; // ((DbQuery<Track>)queryable).Sql;
+                var sorted = queryable.ToList();
+
+                Debug.WriteLine(sql);
+
+                Assert.AreEqual(items.Count, sorted.Count);
+                Assert.AreNotEqual(items[0].Track.Genre.Name, sorted[0].Track.Genre.Name);
+                Assert.AreEqual("Alternative", sorted[0].Track.Genre.Name);
+            }
+        }
+
+        [TestMethod]
         public void MultiSortTest()
         {
             var request = new SortRequest
